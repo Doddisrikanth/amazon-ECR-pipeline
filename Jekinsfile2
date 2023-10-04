@@ -1,0 +1,20 @@
+pipeline{
+    agent any
+    stages {
+        stage('build') {
+            steps {
+                sh 'printenv'
+            }
+        }
+        stage('create docker image to aws ecr'){
+            steps{
+                withEnv (["AWS_ACCESS_KEY_ID-${env.AWS_ACCESS_KEY_ID}", "AWS_SECRET_ACCESS_KEY-${env.AWS_SECRET_ACCESS_KEY}", "AWS_DEFAULT_REGION-${env.AWS_DEFAULT_REGION}"]) {
+                    sh 'docker login --username AWS --password $(aws ecr-public get-login-password --region us-east-1) public.ecr.aws/w3b6s6n4'
+                    sh 'public.ecr.aws/w3b6s6n4'
+                    sh 'docker tag sri-dev:latest public.ecr.aws/w3b6s6n4/sri-dev:latest'
+                    sh 'docker push public.ecr.aws/w3b6s6n4/sri-dev:latest'
+                }
+            }
+        }
+    }
+}
