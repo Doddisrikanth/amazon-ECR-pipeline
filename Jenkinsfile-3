@@ -1,0 +1,35 @@
+// create ec2 instance.
+// install aws cli.
+// create ECR repository with public.
+// add IAM role whith this permission, 1. EC2ContainerRegistoryFullaccess, 2. Adminstretivefullaccess.
+// attach the role to instance.
+// Create AccessKey and SecretKey AccessKey.
+// install jenkins and docker.
+// install plugins in jenkins. 1. Docker all pluggins, 2. AWS Credentials
+// go credentials and add credentials to aws AccessKey and SecretKey AccessKey.
+
+pipeline {
+    agent any
+    //environment {
+       // registry = "public.ecr.aws/w3b6s6n4/sridev"
+    //}
+    stages {
+        stage('git') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Meenakshi0812/jenkins-ECR.git'
+            }
+        }
+        stage('Pushing to ECR') {
+            steps{  
+                script {
+                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_cred', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+                        sh 'aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/w3b6s6n4'
+                        sh 'docker build -t sridev .'
+                        sh 'docker tag sridev:latest public.ecr.aws/w3b6s6n4/sridev:latest'
+                        sh 'docker push public.ecr.aws/w3b6s6n4/sridev:latest'
+                    }
+                }
+            }
+        }
+    }
+}
