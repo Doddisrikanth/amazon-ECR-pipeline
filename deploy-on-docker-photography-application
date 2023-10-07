@@ -1,0 +1,29 @@
+pipeline {
+    agent any
+    stages {
+        stage('git') {
+            steps {
+               git 'https://github.com/Doddisrikanth/Jenkins-Docker-Project.git'
+            }
+        }
+        stage('build image') {
+           steps {
+                sh 'docker build -t camera:${BUILD_ID} .'
+                sh 'docker image tag camera:${BUILD_ID} srikanthkky/camera:${BUILD_ID}'
+           }
+        }
+        stage('push docker hub') {
+            steps {
+                withCredentials([string(credentialsId: 'srikanth', variable: 'dockerpasswd')]) {
+                    sh 'docker login -u srikanthkky -p ${dockerpasswd}'
+                    sh 'docker push srikanthkky/camera:${BUILD_ID}'
+                }
+            }
+        }
+        stage('deploy into docker') {
+            steps {
+                sh 'docker run -itd -p 9000:80 --name onecam srikanthkky/camera:${BUILD_ID}'
+            }
+        }
+    }
+}
